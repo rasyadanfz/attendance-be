@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Account, UserRole } from './entities/account.entity.js';
 import { Repository } from 'typeorm';
@@ -22,7 +22,7 @@ export class AccountsService {
 
     async create(dto: CreateAccountDTO){
         const existingAccount = await this.accountRepository.findOne({where: {employeeId: dto.employeeId}})
-        if (existingAccount) return existingAccount
+        if (existingAccount) throw new ConflictException("account already exists")
 
         const passwordHash = await bcrypt.hash(dto.password, 12)
         const newAccount = this.accountRepository.create({

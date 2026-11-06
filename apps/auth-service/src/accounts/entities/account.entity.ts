@@ -10,10 +10,10 @@ export class Account {
     @PrimaryGeneratedColumn()
     id: number
 
-    @Column({nullable: false})
+    @Column({name: "employee_id", nullable: false, unique: true})
     employeeId: number
 
-    @Column()
+    @Column({unique: true})
     email: string
     
     @Column({name: "password_hash"})
