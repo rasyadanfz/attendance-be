@@ -17,7 +17,10 @@
     "start:attendance": "nest start attendance-service --watch",
     "migration:generate:auth": "typeorm-ts-node-esm migration:generate -d apps/auth-service/src/data-source.ts",
     "migration:run:auth": "typeorm-ts-node-esm migration:run -d apps/auth-service/src/data-source.ts",
-    "migration:revert:auth": "typeorm-ts-node-esm migration:revert -d apps/auth-service/src/data-source.ts"
+    "migration:revert:auth": "typeorm-ts-node-esm migration:revert -d apps/auth-service/src/data-source.ts",
+    "migration:generate:employee": "typeorm-ts-node-esm migration:generate -d apps/employee-service/src/data-source.ts",
+    "migration:run:employee": "typeorm-ts-node-esm migration:run -d apps/employee-service/src/data-source.ts",
+    "migration:revert:employee": "typeorm-ts-node-esm migration:revert -d apps/employee-service/src/data-source.ts"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
