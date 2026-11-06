@@ -16,18 +16,18 @@ export class Account {
     @Column()
     email: string
     
-    @Column()
+    @Column({name: "password_hash"})
     passwordHash:string
 
     @Column({type: "simple-enum", enum: UserRole, default: UserRole.EMPLOYEE})
     role: UserRole
     
-    @Column({nullable: true})
-    lastLogin:Date
+    @Column({name: "last_login_at", type: "datetime", nullable: true})
+    lastLogin:Date | null
     
-    @CreateDateColumn()
+    @CreateDateColumn({name: "created_at"})
     createdAt:Date
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({name:"updated_at"})
     updatedAt:Date
 }
