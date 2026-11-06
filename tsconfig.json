@@ -34,9 +34,6 @@
   "files": [],
   "references": [
     {
-      "path": "./apps/attendance-be/tsconfig.app.json"
-    },
-    {
       "path": "./apps/auth-service/tsconfig.app.json"
     },
     {
