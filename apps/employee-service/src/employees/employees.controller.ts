@@ -1,4 +1,5 @@
-import { Body, Controller, Get, HttpCode, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard, RolesGuard, Roles } from '@app/common'
 import { EmployeesService } from './employees.service.js';
 import { FindEmployeesDTO } from '../dto/findEmployees.dto.js';
 import { CreateEmployeeDTO } from '../dto/createEmployee.dto.js';
@@ -6,10 +7,12 @@ import { NonEmptyBodyPipe } from '../validation_pipes/NonEmptyBodyPipe.js';
 import { UpdateEmployeeDTO } from '../dto/updateEmployee.dto.js';
 
 @Controller('employees')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class EmployeesController {
     constructor (private employeeService: EmployeesService) {}
 
     @Get()
+    @Roles('hradmin')
     async getAll(@Query() dto: FindEmployeesDTO){
         const [result, count] = await this.employeeService.findAll({...dto})
 
@@ -20,12 +23,14 @@ export class EmployeesController {
     }
 
     @Get(':employeeId')
+    @Roles('hradmin')
     async getById(@Param("employeeId", ParseIntPipe) id: number) {
         const data = await this.employeeService.findOne(id);
         return data
     }
 
     @Post()
+    @Roles('hradmin')
     async create(@Body() dto: CreateEmployeeDTO) {
         const result = await this.employeeService.create({...dto})
         return {
@@ -41,6 +46,7 @@ export class EmployeesController {
     }
 
     @Patch(":employeeId")
+    @Roles('hradmin')
     @HttpCode(200)
     async update(@Param("employeeId") id: number, @Body(NonEmptyBodyPipe) dto: UpdateEmployeeDTO) {
         const result = await this.employeeService.update({id: id, ...dto})
