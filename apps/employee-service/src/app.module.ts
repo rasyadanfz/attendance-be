@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmployeesModule } from './employees/employees.module.js';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -16,6 +17,14 @@ import { EmployeesModule } from './employees/employees.module.js';
         timezone: 'Z'
       }),
       inject: [ConfigService],
+    }),
+    JwtModule.registerAsync({
+      global: true,
+      inject: [ConfigService],
+        useFactory: (config: ConfigService) => ({
+          secret: config.getOrThrow<string>("JWT_SECRET"),
+          verifyOptions: { algorithms: ['HS256'] }
+      })
     }),
     EmployeesModule,
   ],

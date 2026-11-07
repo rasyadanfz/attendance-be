@@ -1,5 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
+import { Request } from "express";
 
 export type UserRoles = 'employee' | 'hradmin'
 
@@ -19,9 +20,9 @@ export class JwtAuthGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const req = context.switchToHttp().getRequest<AuthenticatedRequest>()
-        const authHeader = req.headers.get("Authorization")
+        const authHeader = req.headers["authorization"]
 
-        if (!authHeader) throw new UnauthorizedException()
+        if (!authHeader || typeof authHeader !== "string") throw new UnauthorizedException()
 
         const [type, token] = authHeader.split(" ")
         if (type !== "Bearer" || !token) throw new UnauthorizedException()
