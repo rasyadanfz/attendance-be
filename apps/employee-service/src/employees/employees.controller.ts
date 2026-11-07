@@ -1,7 +1,9 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
 import { EmployeesService } from './employees.service.js';
 import { FindEmployeesDTO } from '../dto/findEmployees.dto.js';
 import { CreateEmployeeDTO } from '../dto/createEmployee.dto.js';
+import { NonEmptyBodyPipe } from '../validation_pipes/NonEmptyBodyPipe.js';
+import { UpdateEmployeeDTO } from '../dto/updateEmployee.dto.js';
 
 @Controller('employees')
 export class EmployeesController {
@@ -17,11 +19,40 @@ export class EmployeesController {
         }
     }
 
+    @Get(':employeeId')
+    async getById(@Param("employeeId", ParseIntPipe) id: number) {
+        const data = await this.employeeService.findOne(id);
+        return data
+    }
+
     @Post()
     async create(@Body() dto: CreateEmployeeDTO) {
         const result = await this.employeeService.create({...dto})
         return {
-            ...result, 
+            id: result.id,
+            full_name: result.fullName,
+            email: result.email,
+            phone_number: result.phoneNumber,
+            position: result.position,
+            department: result.department,
+            status: result.status,
+            created_at: result.createdAt
+        }
+    }
+
+    @Patch(":employeeId")
+    @HttpCode(200)
+    async update(@Param("employeeId") id: number, @Body(NonEmptyBodyPipe) dto: UpdateEmployeeDTO) {
+        const result = await this.employeeService.update({id: id, ...dto})
+        return {
+            id: result.id,
+            full_name: result.fullName,
+            email: result.email,
+            phone_number: result.phoneNumber,
+            position: result.position,
+            department: result.department,
+            status: result.status,
+            updated_at: result.updatedAt
         }
     }
 }

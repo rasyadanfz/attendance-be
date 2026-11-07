@@ -1,4 +1,4 @@
-import { ConflictException, HttpException, Injectable } from '@nestjs/common';
+import { ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { QueryFailedError, Repository } from 'typeorm';
 import { Employee, EmployeeStatus } from './entities/employee.entity.js';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -20,6 +20,10 @@ interface CreateEmployeeData {
     department: string,
     status: EmployeeStatus, 
     phoneNumber?: string,
+}
+
+interface UpdateEmployeeData extends Partial<Omit<CreateEmployeeData, "password">> {
+    id: number
 }
 
 @Injectable()
@@ -45,6 +49,13 @@ export class EmployeesService {
         return await queryBuilder.getManyAndCount()
     }
 
+    async findOne(id: number) {
+        const employee = await this.employeesRepository.findOneBy({id: id})
+        if (!employee) throw new NotFoundException("employee not found")
+
+        return employee
+    }
+
     async create(data: CreateEmployeeData) {
         const newEmployee = this.employeesRepository.create({
             ...data, status: EmployeeStatus.PENDING
@@ -64,10 +75,11 @@ export class EmployeesService {
             await this.auth.post('/internal/accounts',
                 {
                     json: {
-                        employeeId: newEmployee.id,
+                        employee_id: newEmployee.id,
                         email: newEmployee.email,
                         password: data.password,
-                        role: 'employee'
+                        role: 'employee',
+                        is_active: data.status === EmployeeStatus.ACTIVE ? true : false
                     }
                 }
             )
@@ -82,5 +94,51 @@ export class EmployeesService {
         // account creation succeed on auth-service
         newEmployee.status = EmployeeStatus.ACTIVE
         return this.employeesRepository.save(newEmployee)
+    }
+
+    async update(data: UpdateEmployeeData) {
+        const { id, ...updateData } = data
+
+        const oldEmployeeData = await this.employeesRepository.findOneBy({id: id})
+        if (!oldEmployeeData) throw new NotFoundException("employee not found")
+
+        // Check for auth account changes needed
+        const authAccountChanges: { email?: string; is_active?: boolean } = {}
+        if (updateData.email && updateData.email !== oldEmployeeData.email) {
+            authAccountChanges.email = updateData.email
+        }
+        if (updateData.status && updateData.status !== oldEmployeeData.status) {
+            authAccountChanges.is_active = updateData.status === EmployeeStatus.ACTIVE
+        }
+
+        try {
+            await this.employeesRepository.update(id, updateData)
+        } catch (e) {
+            if (e instanceof QueryFailedError) {
+                if (e.driverError.code === "ER_DUP_ENTRY") {
+                    throw new ConflictException("email already in use")
+                }
+            }
+
+            throw e
+        }
+
+        // Update auth account if needed
+        if (Object.keys(authAccountChanges).length > 0) {
+            try {
+                await this.auth.patch(`/internal/accounts/${id}`, { json: authAccountChanges })
+            } catch (e) {
+                // revert changes in employee database
+                await this.employeesRepository.update(id, oldEmployeeData)
+
+                if (e instanceof HttpResponseError && e.status === 409) {
+                    throw new ConflictException("email already in use")
+                }
+
+                throw toHttpException(e)
+            }
+        }
+
+        return await this.employeesRepository.findOneByOrFail({id: id})
     }
 }
