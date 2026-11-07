@@ -1,10 +1,12 @@
-import { Body, Controller, HttpCode, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { ServiceKeyGuard } from "@app/common"
 import { CreateAccountDTO } from './dto/createAccount.dto.js';
 import { AccountsService } from './accounts.service.js';
 import { UpdateAccountDTO } from './dto/updateAccount.dto.js';
 import { NonEmptyBodyPipe } from '../validation_pipes/NonEmptyBodyPipe.js';
 
 @Controller('internal/accounts')
+@UseGuards(ServiceKeyGuard)
 export class AccountsController {
     constructor(private accountService: AccountsService){}
 
