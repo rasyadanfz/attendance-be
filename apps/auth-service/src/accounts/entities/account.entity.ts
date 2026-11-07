@@ -10,7 +10,7 @@ export class Account {
     @PrimaryGeneratedColumn()
     id: number
 
-    @Column({name: "employee_id", nullable: false, unique: true})
+    @Column({name: "employee_id", nullable: true, unique: true})
     employeeId: number
 
     @Column({unique: true})
@@ -21,6 +21,9 @@ export class Account {
 
     @Column({type: "simple-enum", enum: UserRole, default: UserRole.EMPLOYEE})
     role: UserRole
+
+    @Column({name: "is_active", type: "boolean"})
+    isActive: boolean
     
     @Column({name: "last_login_at", type: "datetime", nullable: true})
     lastLogin:Date | null

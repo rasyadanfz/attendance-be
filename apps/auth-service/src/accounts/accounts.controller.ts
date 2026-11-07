@@ -1,6 +1,8 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { CreateAccountDTO } from './dto/createAccount.dto.js';
 import { AccountsService } from './accounts.service.js';
+import { UpdateAccountDTO } from './dto/updateAccount.dto.js';
+import { NonEmptyBodyPipe } from '../validation_pipes/NonEmptyBodyPipe.js';
 
 @Controller('internal/accounts')
 export class AccountsController {
@@ -12,9 +14,20 @@ export class AccountsController {
         const account = await this.accountService.create(dto)
         return {
             id: account.id,
-            employeeId: account.employeeId,
+            employee_id: account.employeeId,
             email: account.email,
             role: account.role
+        }
+    }
+
+    @Patch(":employeeId")
+    @HttpCode(200)
+    async update(@Param('employeeId', ParseIntPipe) id: number, @Body(NonEmptyBodyPipe) dto: UpdateAccountDTO) {
+        const res = await this.accountService.update(id, dto.email, dto.isActive)
+        return {
+            employee_id: res.id,
+            email: res.email,
+            is_active: res.isActive
         }
     }
 }

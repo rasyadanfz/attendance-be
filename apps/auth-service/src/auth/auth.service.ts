@@ -13,7 +13,7 @@ export class AuthService {
 
     async login(dto: LoginDTO){
         const account = await this.accounts.findByEmail(dto.email);
-        if (!account) throw new UnauthorizedException("invalid email/password")
+        if (!account || !account.isActive) throw new UnauthorizedException("invalid email/password")
 
         const valid = await bcrypt.compare(dto.password, account.passwordHash)
         if (!valid) throw new UnauthorizedException("invalid email/password")

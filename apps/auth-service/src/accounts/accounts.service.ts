@@ -1,9 +1,10 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Account, UserRole } from './entities/account.entity.js';
 import { Repository } from 'typeorm';
 import { CreateAccountDTO } from './dto/createAccount.dto.js';
 import * as bcrypt from "bcrypt"
+import { UpdateAccountDTO } from './dto/updateAccount.dto.js';
 
 @Injectable()
 export class AccountsService {
@@ -29,9 +30,20 @@ export class AccountsService {
             employeeId: dto.employeeId,
             email: dto.email,
             passwordHash: passwordHash,
-            role: dto.role ?? UserRole.EMPLOYEE
+            role: dto.role ?? UserRole.EMPLOYEE,
+            isActive: dto.isActive
         })
 
         return this.accountRepository.save(newAccount)
+    }
+
+    async update(employeeId: number, email?: string, isActive?: boolean) {
+        const account = await this.accountRepository.findOneBy({employeeId: employeeId})
+        if (!account) throw new NotFoundException("account not found")
+        
+        account.email = email ? email : account.email
+        account.isActive = isActive ? isActive: account.isActive
+
+        return await this.accountRepository.save(account)
     }
 }
