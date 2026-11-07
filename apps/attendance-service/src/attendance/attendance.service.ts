@@ -1,8 +1,17 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Attendance, AttendanceAction } from './entities/attendance.entity.js';
 import { QueryFailedError, Repository } from 'typeorm';
 import { PhotoStorageService } from '../photo-storage/photo-storage.service.js';
+
+interface GetAttendancesFilters {
+    page: number,
+    limit: number,
+    from?: string,
+    to?: string,
+    employeeId?: number,
+    action?: AttendanceAction
+}
 
 @Injectable()
 export class AttendanceService {
@@ -91,6 +100,52 @@ export class AttendanceService {
 
             throw e
         }
+    }
+
+    async getToday(employeeId: number): Promise<{status: "NOT_CHECKED_IN" | "CHECKED_IN" | "COMPLETE", time?: Date}> {
+        const attendances = await this.attendanceRepository.find({
+            where: {
+                employeeId: employeeId,
+                date: this.toWorkingDate(new Date())
+            },
+            select: {action: true, occuredAt: true}
+        })
+
+        const notCheckedIn = attendances.length === 0
+        if (notCheckedIn) return {status: "NOT_CHECKED_IN"}
+
+        const checkInRecord = attendances.find(r => r.action === AttendanceAction.CHECKIN)
+        const checkOutRecord = attendances.find(r => r.action === AttendanceAction.CHECKOUT)
+
+        if (checkOutRecord) return {status: "COMPLETE", time: checkOutRecord.occuredAt}
+
+        return {status: "CHECKED_IN", time: checkInRecord?.occuredAt}
+    }
+
+    async getAll(filters: GetAttendancesFilters) {
+        const { page, limit, from, to, employeeId, action } = filters;
+        if (from && to && from > to) {
+            throw new BadRequestException('from must not be after to');
+        }
+
+        const queryBuilder = this.attendanceRepository
+            .createQueryBuilder("a")
+        
+        if (from) queryBuilder.andWhere("a.date >= :from", {from})
+        if (to) queryBuilder.andWhere("a.date >= :to", {to})      
+        if (employeeId) queryBuilder.andWhere("a.employee_id = :employeeId", {employeeId})   
+        if (action) queryBuilder.andWhere("a.action = :action", {action})   
+        
+        const result = await queryBuilder
+            .orderBy('a.date', 'DESC')
+            .addOrderBy('a.occuredAt', 'DESC')
+            .addOrderBy('a.id', 'DESC')
+            .limit(limit)
+            .offset(limit * (page - 1))
+            .getManyAndCount()
+        
+        return result
+        
     }
 
     // Helper

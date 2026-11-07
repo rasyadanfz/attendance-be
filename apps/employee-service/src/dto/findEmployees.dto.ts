@@ -1,5 +1,5 @@
-import { IsInt, IsNumber, IsOptional, Min } from "class-validator"
-import { Type } from "class-transformer"
+import { ArrayMaxSize, IsArray, IsInt, IsNumber, IsOptional, Max, Min } from "class-validator"
+import { Transform, Type } from "class-transformer"
 
 export class FindEmployeesDTO {
     @IsOptional()
@@ -12,8 +12,17 @@ export class FindEmployeesDTO {
     @Type(() => Number)
     @IsInt()
     @Min(1)
+    @Max(50)
     limit: number = 10
 
     @IsOptional()
     search: string
+
+    @IsOptional()
+    @Transform(({ value }) => typeof value === 'string' ? value.split(',').map(Number) : value,)
+    @IsArray()
+    @ArrayMaxSize(50)
+    @IsInt({ each: true })
+    @Min(1, { each: true })
+    ids?: number[]; // ?ids=1,2,3,...
 }

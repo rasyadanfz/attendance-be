@@ -1,5 +1,5 @@
 import { ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { QueryFailedError, Repository } from 'typeorm';
+import { In, QueryFailedError, Repository } from 'typeorm';
 import { Employee, EmployeeStatus } from './entities/employee.entity.js';
 import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom } from 'rxjs';
@@ -10,6 +10,7 @@ interface FindEmployeesData {
     page: number,
     limit: number,
     search: string,
+    ids?: number[]
 }
 
 interface CreateEmployeeData {
@@ -37,6 +38,13 @@ export class EmployeesService {
     ){}
 
     async findAll(query: FindEmployeesData) {
+        if (query.ids?.length) {
+            const rows = await this.employeesRepository.findAndCount({
+                where: {id: In(query.ids)}
+            })
+            return rows
+        }
+
         const queryBuilder = this.employeesRepository
         .createQueryBuilder("employees")
         .limit(query.limit)
