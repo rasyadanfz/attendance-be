@@ -26,4 +26,8 @@ export class PhotoStorageService {
     async remove(filename: string): Promise<void> {
         await unlink(join(this.directory, filename))
     }
+
+    pathOf(filename: string): string {
+        return join(this.directory, filename)
+    }
 }

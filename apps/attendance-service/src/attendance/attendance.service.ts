@@ -1,8 +1,12 @@
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Attendance, AttendanceAction } from './entities/attendance.entity.js';
 import { QueryFailedError, Repository } from 'typeorm';
 import { PhotoStorageService } from '../photo-storage/photo-storage.service.js';
+import { JwtUserData } from '@app/common';
+import { access } from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
+import { extname } from 'node:path';
 
 interface GetAttendancesFilters {
     page: number,
@@ -11,6 +15,11 @@ interface GetAttendancesFilters {
     to?: string,
     employeeId?: number,
     action?: AttendanceAction
+}
+
+const photoMimeType: Record<string, string> = {
+    '.jpg': "image/jpeg",
+    '.png': "image/png"
 }
 
 @Injectable()
@@ -148,8 +157,30 @@ export class AttendanceService {
         
     }
 
+    async getPhoto(attendanceId: number, user: JwtUserData) {
+        const attendance = await this.attendanceRepository.findOneBy({id: attendanceId, action: AttendanceAction.CHECKIN})
+        if (!attendance || !attendance.photoFilename) throw new NotFoundException("photo not found")
+
+        const isFileOwner = (user.role === 'employee' && user.employee_id && attendance.employeeId === user.employee_id)
+        if (user.role !== 'hradmin' && !isFileOwner) throw new ForbiddenException()
+
+        const path = this.storage.pathOf(attendance.photoFilename)
+        try {
+            await access(path)
+        } catch (e) {
+            throw new NotFoundException("photo is missing")
+        }
+
+        const fileStream = createReadStream(path)
+        return new StreamableFile(fileStream, {
+            type: photoMimeType[extname(path).toLowerCase()] ?? 'application/octet-stream',
+            disposition: 'inline'
+        })
+    }
+
     // Helper
     private toWorkingDate(date: Date): string {
         return new Intl.DateTimeFormat('en-CA', {timeZone: this.timezone}).format(date)
     }
+
 }
