@@ -11,7 +11,7 @@ export class Account {
     id: number
 
     @Column({name: "employee_id", nullable: true, unique: true})
-    employeeId: number
+    employeeId?: number
 
     @Column({unique: true})
     email: string

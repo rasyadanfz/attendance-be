@@ -20,7 +20,9 @@
     "strictPropertyInitialization": false,
     "types": [
       "vitest/globals",
-      "node"
+      "node",
+      "express",
+      "multer"
     ],
     "paths": {
       "@app/common": [
