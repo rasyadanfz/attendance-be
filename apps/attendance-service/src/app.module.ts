@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt'
+import { PhotoStorageModule } from './photo-storage/photo-storage.module.js';
 
 @Module({
   imports: [
@@ -16,6 +18,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       }),
       inject: [ConfigService],
     }),
+    JwtModule.registerAsync({
+      global: true,
+      inject: [ConfigService],
+        useFactory: (config: ConfigService) => ({
+          secret: config.getOrThrow<string>("JWT_SECRET"),
+          verifyOptions: { algorithms: ['HS256'] }
+      })
+    }),
+    PhotoStorageModule, 
   ],
 })
 export class AttendanceServiceModule {}

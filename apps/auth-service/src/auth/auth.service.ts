@@ -19,11 +19,12 @@ export class AuthService {
         if (!valid) throw new UnauthorizedException("invalid email/password")
 
         const accessToken = await this.jwtService.signAsync({
-            sub: account.employeeId,
-            role: account.role
+            sub: account.id,
+            role: account.role,
+            employee_id: account.employeeId
         })
 
-        await this.accounts.recordLogin(account.employeeId)
+        await this.accounts.recordLogin(account.id)
 
         return {accessToken}
     }
