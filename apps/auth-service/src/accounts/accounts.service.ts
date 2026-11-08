@@ -17,8 +17,8 @@ export class AccountsService {
         return this.accountRepository.findOne({where: {email}})
     }
 
-    async recordLogin(employeeId: number){
-        await this.accountRepository.update({employeeId: employeeId}, {lastLogin: new Date()})
+    async recordLogin(id: number){
+        await this.accountRepository.update({id: id}, {lastLogin: new Date()})
     }
 
     async create(dto: CreateAccountDTO){
@@ -41,8 +41,8 @@ export class AccountsService {
         const account = await this.accountRepository.findOneBy({employeeId: employeeId})
         if (!account) throw new NotFoundException("account not found")
         
-        account.email = email ? email : account.email
-        account.isActive = isActive ? isActive: account.isActive
+        account.email = email ??  account.email
+        account.isActive = isActive ?? account.isActive
 
         return await this.accountRepository.save(account)
     }

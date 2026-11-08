@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt'
 import { PhotoStorageModule } from './photo-storage/photo-storage.module.js';
+import { AttendanceModule } from './attendance/attendance.module.js';
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import { PhotoStorageModule } from './photo-storage/photo-storage.module.js';
           verifyOptions: { algorithms: ['HS256'] }
       })
     }),
-    PhotoStorageModule, 
+    PhotoStorageModule,
+    AttendanceModule
   ],
 })
 export class AttendanceServiceModule {}

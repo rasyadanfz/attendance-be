@@ -1,4 +1,4 @@
-import { ArrayMaxSize, IsArray, IsInt, IsNumber, IsOptional, Max, Min } from "class-validator"
+import { ArrayMaxSize, IsArray, IsInt, IsNumber, IsOptional, IsString, Max, Min } from "class-validator"
 import { Transform, Type } from "class-transformer"
 
 export class FindEmployeesDTO {
@@ -16,6 +16,7 @@ export class FindEmployeesDTO {
     limit: number = 10
 
     @IsOptional()
+    @IsString()
     search: string
 
     @IsOptional()

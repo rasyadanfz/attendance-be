@@ -141,7 +141,7 @@ export class AttendanceService {
             .createQueryBuilder("a")
         
         if (from) queryBuilder.andWhere("a.date >= :from", {from})
-        if (to) queryBuilder.andWhere("a.date >= :to", {to})      
+        if (to) queryBuilder.andWhere("a.date <= :to", {to})      
         if (employeeId) queryBuilder.andWhere("a.employee_id = :employeeId", {employeeId})   
         if (action) queryBuilder.andWhere("a.action = :action", {action})   
         

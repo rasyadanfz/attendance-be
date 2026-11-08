@@ -31,9 +31,46 @@ services:
         - APP=auth-service
     environment:
       PORT: 3001
+      SERVICE_KEY: ${SERVICE_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRY_TIME: ${JWT_EXPIRY_TIME}
       AUTH_DB_URL: ${AUTH_DB_URL}
+    depends_on:
+      - mysql
+    
+  attendance-service:
+    container_name: attendance-service
+    build:
+      context: .
+      args:
+        - APP=attendance-service
+    environment:
+      PORT: 3002
+      SERVICE_KEY: ${SERVICE_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRY_TIME: ${JWT_EXPIRY_TIME}
+      ATTENDANCE_DB_URL: ${ATTENDANCE_DB_URL}
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      - mysql
+  
+  employee-service:
+    container_name: employee-service
+    build:
+      context: .
+      args:
+        - APP=employee-service
+    environment:
+      PORT: 3003
+      SERVICE_KEY: ${SERVICE_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRY_TIME: ${JWT_EXPIRY_TIME}
+      EMPLOYEE_DB_URL: ${EMPLOYEE_DB_URL}
+      AUTH_SERVICE_URL: http://auth-service:3001/
     depends_on:
       - mysql
 
 volumes:
   mysqldata:
+  uploads_data:

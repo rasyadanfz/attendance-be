@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, FileTypeValidator, ForbiddenException, Get, HttpCode, MaxFileSizeValidator, Param, ParseFilePipe, Post, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, FileTypeValidator, ForbiddenException, Get, HttpCode, MaxFileSizeValidator, Param, ParseFilePipe, ParseIntPipe, Post, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { JwtAuthGuard, RolesGuard, Roles, User, type JwtUserData } from '@app/common';
 import { SubmitAttendanceDTO } from './dto/submitAttendance.dto.js';
 import { FileInterceptor } from "@nestjs/platform-express"
@@ -8,13 +8,13 @@ import { GetAllAttendancesDTO } from './dto/getAllAttendance.dto.js';
 
 @Controller('attendance')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@UseInterceptors(FileInterceptor('photo', {limits: {fileSize: 4 * 1024 * 1024}}))
 export class AttendanceController {
     constructor(private attendanceService: AttendanceService){}
 
     @Post()
     @Roles('employee')
     @HttpCode(200)
+    @UseInterceptors(FileInterceptor('photo', {limits: {fileSize: 4 * 1024 * 1024}}))
     async submitAttendance(
         @User() user: JwtUserData,
         @Body() dto: SubmitAttendanceDTO,
@@ -65,7 +65,7 @@ export class AttendanceController {
 
     @Get(":id/photo")
     @Roles("employee", "hradmin")
-    async getAttendancePhoto(@Param('id') attendanceId: number, @User() user: JwtUserData){
+    async getAttendancePhoto(@Param('id', ParseIntPipe) attendanceId: number, @User() user: JwtUserData){
         const file = await this.attendanceService.getPhoto(attendanceId, user)
         return file
     }

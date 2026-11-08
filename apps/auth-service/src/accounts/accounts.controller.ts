@@ -27,7 +27,8 @@ export class AccountsController {
     async update(@Param('employeeId', ParseIntPipe) id: number, @Body(NonEmptyBodyPipe) dto: UpdateAccountDTO) {
         const res = await this.accountService.update(id, dto.email, dto.isActive)
         return {
-            employee_id: res.id,
+            id: res.id,
+            employee_id: res.employeeId,
             email: res.email,
             is_active: res.isActive
         }

@@ -35,6 +35,8 @@ export class EmployeesService {
 
         @InjectHttpClient('auth-service')
         private auth: HttpClient,
+
+        private config: ConfigService
     ){}
 
     async findAll(query: FindEmployeesData) {
@@ -49,6 +51,7 @@ export class EmployeesService {
         .createQueryBuilder("employees")
         .limit(query.limit)
         .offset(query.limit * (query.page - 1))
+        .orderBy('employees.full_name', 'ASC')
 
         if (query.search) {
             queryBuilder.where("employees.full_name LIKE :search", {search: `%${query.search}%`})
@@ -72,7 +75,7 @@ export class EmployeesService {
         try {
             await this.employeesRepository.save(newEmployee);
         } catch (e) {
-            if (e instanceof QueryFailedError) {
+            if (e instanceof QueryFailedError && e.driverError.code === "ER_DUP_ENTRY") {
                 throw new ConflictException("email already in use")
             }
 
@@ -82,6 +85,9 @@ export class EmployeesService {
         try {
             await this.auth.post('/internal/accounts',
                 {
+                    headers: {
+                        "X-Service-Key": this.config.getOrThrow<string>("SERVICE_KEY")
+                    },
                     json: {
                         employee_id: newEmployee.id,
                         email: newEmployee.email,
@@ -100,7 +106,7 @@ export class EmployeesService {
         }
 
         // account creation succeed on auth-service
-        newEmployee.status = EmployeeStatus.ACTIVE
+        newEmployee.status = data.status
         return this.employeesRepository.save(newEmployee)
     }
 

@@ -48,7 +48,7 @@ export class EmployeesController {
     @Patch(":employeeId")
     @Roles('hradmin')
     @HttpCode(200)
-    async update(@Param("employeeId") id: number, @Body(NonEmptyBodyPipe) dto: UpdateEmployeeDTO) {
+    async update(@Param("employeeId", ParseIntPipe) id: number, @Body(NonEmptyBodyPipe) dto: UpdateEmployeeDTO) {
         const result = await this.employeeService.update({id: id, ...dto})
         return {
             id: result.id,

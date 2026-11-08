@@ -5,6 +5,7 @@ import { Expose } from "class-transformer"
 export class CreateEmployeeDTO {
     @IsNotEmpty()
     @MinLength(7)
+    @MaxLength(50)
     password: string
 
     @Expose({name: "full_name"})
@@ -14,6 +15,7 @@ export class CreateEmployeeDTO {
 
     @IsNotEmpty()
     @IsEmail()
+    @MaxLength(70)
     email: string
 
     @Expose({name: "phone_number"})
