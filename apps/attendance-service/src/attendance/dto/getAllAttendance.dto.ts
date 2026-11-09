@@ -6,8 +6,10 @@ import {
   IsISO8601,
   IsEnum,
   Max,
+  ArrayMaxSize,
+  IsArray,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { AttendanceAction } from '../entities/attendance.entity.js';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
@@ -37,10 +39,14 @@ export class GetAllAttendancesDTO {
   to?: string;
 
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  employeeId?: number;
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.split(',').map(Number) : value,
+  )
+  @IsArray()
+  @ArrayMaxSize(50)
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  employeeIds?: number[]; // ?ids=1,2,3,...
 
   @IsOptional()
   @IsEnum(AttendanceAction)

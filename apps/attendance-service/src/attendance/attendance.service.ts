@@ -20,7 +20,7 @@ interface GetAttendancesFilters {
   limit: number;
   from?: string;
   to?: string;
-  employeeId?: number;
+  employeeIds?: number[];
   action?: AttendanceAction;
 }
 
@@ -158,28 +158,94 @@ export class AttendanceService {
   }
 
   async getAll(filters: GetAttendancesFilters) {
-    const { page, limit, from, to, employeeId, action } = filters;
+    const { page, limit, from, to, employeeIds, action } = filters;
     if (from && to && from > to) {
       throw new BadRequestException('from must not be after to');
     }
 
-    const queryBuilder = this.attendanceRepository.createQueryBuilder('a');
+    const ranked = this.attendanceRepository
+      .createQueryBuilder('r')
+      .select('r.id', 'id')
+      .addSelect(
+        `ROW_NUMBER() OVER (
+         PARTITION BY r.employee_id, r.date
+         ORDER BY r.occured_at DESC, r.id DESC
+       )`,
+        'rn',
+      );
 
-    if (from) queryBuilder.andWhere('a.date >= :from', { from });
-    if (to) queryBuilder.andWhere('a.date <= :to', { to });
-    if (employeeId)
-      queryBuilder.andWhere('a.employee_id = :employeeId', { employeeId });
-    if (action) queryBuilder.andWhere('a.action = :action', { action });
+    if (from) ranked.andWhere('r.date >= :from', { from });
+    if (to) ranked.andWhere('r.date <= :to', { to });
+    if (employeeIds && employeeIds.length)
+      ranked.andWhere('r.employee_id IN (:...ids)', { ids: employeeIds });
 
-    const result = await queryBuilder
+    const qb = this.attendanceRepository
+      .createQueryBuilder('a')
+      .innerJoin(
+        `(${ranked.getQuery()})`,
+        'latest',
+        'latest.id = a.id AND latest.rn = 1',
+      )
+      .setParameters(ranked.getParameters());
+
+    if (action) qb.andWhere('a.action = :action', { action });
+
+    let [rows, total] = await qb
       .orderBy('a.date', 'DESC')
-      .addOrderBy('a.occuredAt', 'DESC')
-      .addOrderBy('a.id', 'DESC')
+      .addOrderBy('a.employee_id', 'ASC')
       .limit(limit)
       .offset(limit * (page - 1))
       .getManyAndCount();
 
-    return result;
+    let photoByKey = new Map<
+      string,
+      { filename: string; attendancePhotoHolderId: number } | null
+    >();
+
+    if (rows.length) {
+      const ids = [...new Set(rows.map((r) => r.employeeId))];
+      const dates = [...new Set(rows.map((r) => r.date))];
+
+      const checkIns = await this.attendanceRepository
+        .createQueryBuilder('c')
+        .select([
+          'c.employeeId',
+          'c.date',
+          'c.id',
+          'c.photoFilename',
+          'c.occuredAt',
+        ])
+        .where('c.employeeId IN (:...ids)', { ids })
+        .andWhere('c.date IN (:...dates)', { dates })
+        .andWhere('c.action = :checkIn', { checkIn: AttendanceAction.CHECKIN })
+        .orderBy('c.occuredAt', 'ASC')
+        .getMany();
+
+      photoByKey = new Map(
+        checkIns.map((c) => [
+          `${c.employeeId}|${c.date}`,
+          c.photoFilename
+            ? { filename: c.photoFilename, attendancePhotoHolderId: c.id }
+            : null,
+        ]),
+      );
+    }
+
+    let resultRows: Array<Attendance & { attendancePhotoHolderId?: number }>;
+    resultRows = rows.map((r) => {
+      const newRow: Attendance & { attendancePhotoHolderId?: number } = {
+        ...r,
+      };
+      const photo = photoByKey.get(`${r.employeeId}|${r.date}`);
+      if (photo) {
+        newRow.photoFilename = photo.filename;
+        newRow.attendancePhotoHolderId = photo.attendancePhotoHolderId;
+      }
+
+      return newRow;
+    });
+
+    return [resultRows, total];
   }
 
   async getPhoto(attendanceId: number, user: JwtUserData) {
