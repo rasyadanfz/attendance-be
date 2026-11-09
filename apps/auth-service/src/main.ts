@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AuthServiceModule } from './app.module.js';
 import { ValidationPipe } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 
 async function bootstrap() {
   const app = await NestFactory.create(AuthServiceModule);

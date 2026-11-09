@@ -13,6 +13,16 @@ services:
     volumes:
       - mysqldata:/var/lib/mysql
       - ./infra/mysql/init.sh:/docker-entrypoint-initdb.d/init.sh:ro
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD || exit 1',
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
   nginx:
     container_name: api-gateway
     image: nginx:1.30.6-alpine
@@ -35,8 +45,12 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRY_TIME: ${JWT_EXPIRY_TIME}
       AUTH_DB_URL: ${AUTH_DB_URL}
+    command: >
+      sh -c "npx typeorm migration:run -d dist/apps/auth-service/apps/auth-service/src/data-source.js &&
+             node dist/apps/auth-service/apps/auth-service/src/main.js"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
 
   attendance-service:
     container_name: attendance-service
@@ -50,10 +64,14 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRY_TIME: ${JWT_EXPIRY_TIME}
       ATTENDANCE_DB_URL: ${ATTENDANCE_DB_URL}
+    command: >
+      sh -c "npx typeorm migration:run -d dist/apps/attendance-service/apps/attendance-service/src/data-source.js &&
+             node dist/apps/attendance-service/apps/attendance-service/src/main.js"
     volumes:
       - uploads_data:/app/uploads
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
 
   employee-service:
     container_name: employee-service
@@ -68,8 +86,12 @@ services:
       JWT_EXPIRY_TIME: ${JWT_EXPIRY_TIME}
       EMPLOYEE_DB_URL: ${EMPLOYEE_DB_URL}
       AUTH_SERVICE_URL: http://auth-service:3001/
+    command: >
+      sh -c "npx typeorm migration:run -d dist/apps/employee-service/apps/employee-service/src/data-source.js &&
+             node dist/apps/employee-service/apps/employee-service/src/main.js"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
 
 volumes:
   mysqldata:

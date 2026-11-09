@@ -4,7 +4,7 @@
   "sourceRoot": "apps/auth-service/src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "builder": "rspack",
+    "builder": "tsc",
     "tsConfigPath": "apps/auth-service/tsconfig.app.json"
   },
   "monorepo": true,
