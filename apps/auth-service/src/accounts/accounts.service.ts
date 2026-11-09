@@ -1,49 +1,58 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Account, UserRole } from './entities/account.entity.js';
 import { Repository } from 'typeorm';
 import { CreateAccountDTO } from './dto/createAccount.dto.js';
-import * as bcrypt from "bcrypt"
+import * as bcrypt from 'bcrypt';
 import { UpdateAccountDTO } from './dto/updateAccount.dto.js';
 
 @Injectable()
 export class AccountsService {
-    constructor(
-        @InjectRepository(Account)
-        private accountRepository: Repository<Account>
-    ){}
+  constructor(
+    @InjectRepository(Account)
+    private accountRepository: Repository<Account>,
+  ) {}
 
-    async findByEmail(email: string){
-        return this.accountRepository.findOne({where: {email}})
-    }
+  async findByEmail(email: string) {
+    return this.accountRepository.findOne({ where: { email } });
+  }
 
-    async recordLogin(id: number){
-        await this.accountRepository.update({id: id}, {lastLogin: new Date()})
-    }
+  async recordLogin(id: number) {
+    await this.accountRepository.update({ id: id }, { lastLogin: new Date() });
+  }
 
-    async create(dto: CreateAccountDTO){
-        const existingAccount = await this.accountRepository.findOne({where: {employeeId: dto.employeeId}})
-        if (existingAccount) throw new ConflictException("account already exists")
+  async create(dto: CreateAccountDTO) {
+    const existingAccount = await this.accountRepository.findOne({
+      where: { employeeId: dto.employeeId },
+    });
+    if (existingAccount) throw new ConflictException('account already exists');
 
-        const passwordHash = await bcrypt.hash(dto.password, 12)
-        const newAccount = this.accountRepository.create({
-            employeeId: dto.employeeId,
-            email: dto.email,
-            passwordHash: passwordHash,
-            role: dto.role ?? UserRole.EMPLOYEE,
-            isActive: dto.isActive
-        })
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+    const newAccount = this.accountRepository.create({
+      employeeId: dto.employeeId,
+      email: dto.email,
+      passwordHash: passwordHash,
+      role: dto.role ?? UserRole.EMPLOYEE,
+      isActive: dto.isActive,
+    });
 
-        return this.accountRepository.save(newAccount)
-    }
+    return this.accountRepository.save(newAccount);
+  }
 
-    async update(employeeId: number, email?: string, isActive?: boolean) {
-        const account = await this.accountRepository.findOneBy({employeeId: employeeId})
-        if (!account) throw new NotFoundException("account not found")
-        
-        account.email = email ??  account.email
-        account.isActive = isActive ?? account.isActive
+  async update(employeeId: number, email?: string, isActive?: boolean) {
+    const account = await this.accountRepository.findOneBy({
+      employeeId: employeeId,
+    });
+    if (!account) throw new NotFoundException('account not found');
 
-        return await this.accountRepository.save(account)
-    }
+    account.email = email ?? account.email;
+    account.isActive = isActive ?? account.isActive;
+
+    return await this.accountRepository.save(account);
+  }
 }

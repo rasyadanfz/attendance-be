@@ -25,5 +25,4 @@ RUN npm install --omit=dev
 
 COPY --from=builder /app/dist ./dist
 
-USER node
 CMD ["sh", "-c", "node dist/apps/${APP}/main.js"]

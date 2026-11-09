@@ -18,19 +18,10 @@
     "skipLibCheck": true,
     "strict": true,
     "strictPropertyInitialization": false,
-    "types": [
-      "vitest/globals",
-      "node",
-      "express",
-      "multer"
-    ],
+    "types": ["vitest/globals", "node", "express", "multer"],
     "paths": {
-      "@app/common": [
-        "./libs/common/src/index.ts"
-      ],
-      "@app/common/*": [
-        "./libs/common/src/*"
-      ]
+      "@app/common": ["./libs/common/src/index.ts"],
+      "@app/common/*": ["./libs/common/src/*"]
     }
   },
   "files": [],

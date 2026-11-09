@@ -37,7 +37,7 @@ services:
       AUTH_DB_URL: ${AUTH_DB_URL}
     depends_on:
       - mysql
-    
+
   attendance-service:
     container_name: attendance-service
     build:
@@ -54,7 +54,7 @@ services:
       - uploads_data:/app/uploads
     depends_on:
       - mysql
-  
+
   employee-service:
     container_name: employee-service
     build:

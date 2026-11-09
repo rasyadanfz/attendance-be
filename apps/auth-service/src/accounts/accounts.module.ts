@@ -8,6 +8,6 @@ import { Account } from './entities/account.entity.js';
   imports: [TypeOrmModule.forFeature([Account])],
   controllers: [AccountsController],
   providers: [AccountsService],
-  exports: [AccountsService]
+  exports: [AccountsService],
 })
 export class AccountsModule {}

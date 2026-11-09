@@ -3,7 +3,7 @@ import { EmployeesController } from './employees.controller.js';
 import { EmployeesService } from './employees.service.js';
 import { Employee } from './entities/employee.entity.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { HttpClientModule } from "@nestjs/http-client"
+import { HttpClientModule } from '@nestjs/http-client';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
@@ -16,11 +16,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       useFactory: (config: ConfigService) => ({
         baseUrl: config.getOrThrow<string>('AUTH_SERVICE_URL'),
         timeout: 5000,
-        retry: false
-      })
-    })
+        retry: false,
+      }),
+    }),
   ],
   controllers: [EmployeesController],
-  providers: [EmployeesService]
+  providers: [EmployeesService],
 })
 export class EmployeesModule {}

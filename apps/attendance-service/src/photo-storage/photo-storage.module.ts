@@ -3,6 +3,6 @@ import { PhotoStorageService } from './photo-storage.service.js';
 
 @Module({
   providers: [PhotoStorageService],
-  exports: [PhotoStorageService]
+  exports: [PhotoStorageService],
 })
 export class PhotoStorageModule {}

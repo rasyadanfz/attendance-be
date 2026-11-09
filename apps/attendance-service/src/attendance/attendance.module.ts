@@ -7,11 +7,8 @@ import { PhotoStorageModule } from '../photo-storage/photo-storage.module.js';
 import { PhotoStorageService } from '../photo-storage/photo-storage.service.js';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Attendance]),
-    PhotoStorageModule
-  ],
+  imports: [TypeOrmModule.forFeature([Attendance]), PhotoStorageModule],
   controllers: [AttendanceController],
-  providers: [AttendanceService, PhotoStorageService]
+  providers: [AttendanceService, PhotoStorageService],
 })
 export class AttendanceModule {}

@@ -1,2 +1,2 @@
-export * from "./role.decorator.js"
-export * from "./user.decorator.js"
+export * from './role.decorator.js';
+export * from './user.decorator.js';
