@@ -23,7 +23,8 @@
     "migration:revert:employee": "typeorm-ts-node-esm migration:revert -d apps/employee-service/src/data-source.ts",
     "migration:generate:attendance": "typeorm-ts-node-esm migration:generate -d apps/attendance-service/src/data-source.ts",
     "migration:run:attendance": "typeorm-ts-node-esm migration:run -d apps/attendance-service/src/data-source.ts",
-    "migration:revert:attendance": "typeorm-ts-node-esm migration:revert -d apps/attendance-service/src/data-source.ts"
+    "migration:revert:attendance": "typeorm-ts-node-esm migration:revert -d apps/attendance-service/src/data-source.ts",
+    "migration:run": "typeorm-ts-node-esm migration:run -d apps/auth-service/src/data-source.ts && typeorm-ts-node-esm migration:run -d apps/employee-service/src/data-source.ts && typeorm-ts-node-esm migration:run -d apps/attendance-service/src/data-source.ts"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",

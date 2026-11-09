@@ -12,7 +12,12 @@ async function bootstrap() {
     }),
   );
   app.enableCors({
-    origin: ['http://localhost:5173', 'http://localhost:5174'],
+    origin: [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:3123',
+      'http://localhost:3124',
+    ],
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Authorization', 'Content-Type', 'Accept'],
   });
